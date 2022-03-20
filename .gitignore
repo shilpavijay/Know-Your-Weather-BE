@@ -1,0 +1,17 @@
+*.pdf
+requirements.txt
+*.pyc
+*/__pycache__
+*/*/__pycache__
+*/migrations
+*/*/migrations
+*.pyc
+db.sqlite3
+know_your_weather/weatherapp/__pycache__/*
+know_your_weather/__pycache__/*
+know_your_weather/migrations/*
+feedback.md
+debug.log
+my.cnf
+know_your_weather/settings.py
+debug.log
