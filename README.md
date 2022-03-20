@@ -1,8 +1,8 @@
 Know Your Weather:
 ------------------
 
-A simple Weather App  (Back-End) built using Django Rest Framework and MySQL DB
-Integrated with AccuWeather APIs
+A simple Weather App  (Back-End) built using Django Rest Framework and MySQL DB. 
+Integrated with AccuWeather APIs.
 
 API End-points:
 --------------
