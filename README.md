@@ -1,10 +1,11 @@
-#Know Your Weather:
+Know Your Weather:
 ------------------
 
 A simple Weather App  (Back-End) built using Django Rest Framework and MySQL DB:
 Integrated with AccuWeather APIs
 
-#API End-points:
+API End-points:
+--------------
 
 - api/v1/signup: To create a new user
 - api/v1/login: To log in a user
