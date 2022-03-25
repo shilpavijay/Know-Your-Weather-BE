@@ -14,8 +14,9 @@ import logging
 import json
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='debug.log',level=logging.DEBUG)
+logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 api_key = settings.ACCUWEATHER_API_KEY
+
 
 @csrf_exempt
 @api_view(['GET'])
@@ -32,15 +33,16 @@ def signup(request):
         username = request.query_params.get('username')
         email = request.query_params.get('email')
         password = request.query_params.get('password')
-        user = User.objects.create_user(username,email,password)
+        user = User.objects.create_user(username, email, password)
         user.save()
         serializer = UserSerializer(user)
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     except Exception as e:
         error = {'Error_code': status.HTTP_400_BAD_REQUEST,
-                  'Error_Message': "Could not create user: "+ str(username) + ' '+ str(email) + ' ' + str(password) }
+                 'Error_Message': "Could not create user: " + str(username) + ' ' + str(email) + ' ' + str(password)}
         logger.error(e)
         return Response(json.dumps(error), status=status.HTTP_400_BAD_REQUEST)
+
 
 @csrf_exempt
 @api_view(['GET'])
@@ -55,21 +57,23 @@ def loginUser(request):
     try:
         username = request.query_params.get('username')
         password = request.query_params.get('password')
-        user = authenticate(request._request, username=username, password=password)
+        user = authenticate(
+            request._request, username=username, password=password)
         if user is not None:
             login(request, user)
             msg = {'status': "Successfully logged in"}
-            return Response(msg,status=status.HTTP_200_OK)
+            return Response(msg, status=status.HTTP_200_OK)
         else:
             error = {'Error_code': status.HTTP_400_BAD_REQUEST,
-                  'Error_Message': "Invalid Credentials: "+str(username)+" "+str(password)}
+                     'Error_Message': "Invalid Credentials: "+str(username)+" "+str(password)}
             logger.error(error)
             return Response(json.dumps(error), status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         error = {'Error_code': status.HTTP_400_BAD_REQUEST,
-                  'Error_Message': "Something happened while trying to login. CHeck logs."}
+                 'Error_Message': "Something happened while trying to login. CHeck logs."}
         logger.error(e)
         return Response(json.dumps(error), status=status.HTTP_400_BAD_REQUEST)
+
 
 @csrf_exempt
 @api_view(['GET'])
@@ -82,14 +86,15 @@ def logoutUser(request):
     try:
         logout(request)
         msg = {'status': "Successfully logged out"}
-        return Response(msg,status=status.HTTP_200_OK)
+        return Response(msg, status=status.HTTP_200_OK)
     except Exception as e:
         error = {'Error_code': status.HTTP_400_BAD_REQUEST,
-                  'Error_Message': "Something happened while trying to logout. CHeck logs."}
+                 'Error_Message': "Something happened while trying to logout. CHeck logs."}
         logger.error(e)
         return Response(json.dumps(error), status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt        
+
+@csrf_exempt
 @api_view(['GET'])
 def get_regions(request):
     '''
@@ -100,15 +105,17 @@ def get_regions(request):
     try:
         url = "http://dataservice.accuweather.com/locations/v1/regions?apikey="+api_key
         region_codes = requests.get(url).json()
-        region_map = {region['ID']:region['EnglishName'] for region in region_codes}
-        return HttpResponse(json.dumps(region_map),status=status.HTTP_200_OK)
+        region_map = {region['ID']: region['EnglishName']
+                      for region in region_codes}
+        return HttpResponse(json.dumps(region_map), status=status.HTTP_200_OK)
     except Exception as e:
         error = {'Error_code': status.HTTP_400_BAD_REQUEST,
-                  'Error_Message': "Not able to retrieve data from url" + url}
+                 'Error_Message': "Not able to retrieve data from url" + url}
         logger.error(e)
         return Response(json.dumps(error), status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt        
+
+@csrf_exempt
 @api_view(['GET'])
 def get_countries(request):
     '''
@@ -122,11 +129,12 @@ def get_countries(request):
         url = "http://dataservice.accuweather.com/locations/v1/countries/?regionCode={}&apikey="+api_key
         country_codes = requests.get(url.format(region_id)).json()
         print(country_codes)
-        country_map = {country['ID']:country['EnglishName'] for country in country_codes}
-        return HttpResponse(json.dumps(country_map),status=status.HTTP_200_OK)
+        country_map = {country['ID']: country['EnglishName']
+                       for country in country_codes}
+        return HttpResponse(json.dumps(country_map), status=status.HTTP_200_OK)
     except Exception as e:
         error = {'Error_code': status.HTTP_400_BAD_REQUEST,
-                'Error_Message': "Not able to retrieve data from url" + url}
+                 'Error_Message': "Not able to retrieve data from url" + url}
         logger.error(e)
         return Response(json.dumps(error), status=status.HTTP_400_BAD_REQUEST)
 
@@ -147,19 +155,22 @@ def get_data_from_search(request):
         city_location = requests.get(url.format(city)).json()
         location_key = city_location[0]['Key']
         current_condn_url = "http://dataservice.accuweather.com/currentconditions/v1/{}?apikey="+api_key
-        curr_condn_data = requests.get(current_condn_url.format(location_key)).json()
+        curr_condn_data = requests.get(
+            current_condn_url.format(location_key)).json()
         time = curr_condn_data[0]["LocalObservationDateTime"]
         weathertxt = curr_condn_data[0]["WeatherText"]
-        precipitation = "Precipitation present" if curr_condn_data[0]["HasPrecipitation"] == "true" else "No Precipitation"
-        temp_dict = curr_condn_data[0]["Temperature"]["Metric"] 
-        temperature = str(temp_dict["Value"]) + " " +temp_dict["Unit"]
+        precipitation = "Precipitation present" if curr_condn_data[
+            0]["HasPrecipitation"] == "true" else "No Precipitation"
+        temp_dict = curr_condn_data[0]["Temperature"]["Metric"]
+        temperature = str(temp_dict["Value"]) + " " + temp_dict["Unit"]
         link = curr_condn_data[0]["Link"]
-        weathercond = WeatherCondn(city=city,time=time,weathertxt=weathertxt,precipitation=precipitation,temperature=temperature,link=link)
+        weathercond = WeatherCondn(city=city, time=time, weathertxt=weathertxt,
+                                   precipitation=precipitation, temperature=temperature, link=link)
         weathercond.save()
         serializer = WeatherCondnSerializer(weathercond)
-        return HttpResponse(json.dumps(serializer.data),status=status.HTTP_200_OK)
+        return HttpResponse(json.dumps(serializer.data), status=status.HTTP_200_OK)
     except Exception as e:
         error = {'Error_code': status.HTTP_400_BAD_REQUEST,
-                'Error_Message': "Could not find the location. Please provide another search term."}
+                 'Error_Message': "Could not find the location. Please provide another search term."}
         logger.error(e)
         return Response(json.dumps(error), status=status.HTTP_400_BAD_REQUEST)
